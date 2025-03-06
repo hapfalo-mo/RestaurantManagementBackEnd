@@ -44,6 +44,7 @@ func (u *UserController) Register(c *gin.Context) {
 // User Login
 func (u *UserController) Login(c *gin.Context) {
 	var request dto.LoginRequest
+	// gan gia tri tu request vao request
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -55,7 +56,7 @@ func (u *UserController) Login(c *gin.Context) {
 	}
 	result, err := u.service.Login(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Message": "Login Failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Message": "Login Success", "Data": result})
