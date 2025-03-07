@@ -43,7 +43,7 @@ func (u *UserController) Register(c *gin.Context) {
 
 // User Login
 func (u *UserController) Login(c *gin.Context) {
-	var request dto.LoginRequest
+	var request *dto.LoginRequest
 	// gan gia tri tu request vao request
 	err := c.ShouldBindJSON(&request)
 	if err != nil {

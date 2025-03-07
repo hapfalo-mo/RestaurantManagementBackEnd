@@ -18,20 +18,21 @@ type UserService struct {
 func (u UserService) Register(request dto.SignupRequest) (message string, err error) {
 
 	// Check Duplicate Email
-	if !u.CheckDuplicateEmail(request.Email) {
+	isDup, err := u.isDuplicateEmail(request.Email)
+	if err != nil || isDup == true {
 		message = "Email already exists"
 		err = errors.New("Email already exists")
 		return message, err
 	}
 	// Check Legal Password
-	if !u.CheckLegalPassword(request.Password) {
+	if !u.isLegalPassword(request.Password) {
 		message = "Password must be at least 10 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character"
 		err = errors.New("Password must be at least 10 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character")
 		return message, err
 	}
-
+	isDup, err = u.isDuplicatePhoneNumber(request.PhoneNumber)
 	// Check Duplicate PhoneNumber
-	if !u.CheckDuplicatePhoneNumber(request.PhoneNumber) {
+	if err != nil || isDup == true {
 		message = "Phone number already exists"
 		err = errors.New("Phone number already exists")
 		return message, err
@@ -52,19 +53,15 @@ func (u UserService) Register(request dto.SignupRequest) (message string, err er
 }
 
 // Login Function for User
-func (u UserService) Login(request dto.LoginRequest) (dto.LoginResponse, error) {
+func (u UserService) Login(request *dto.LoginRequest) (*dto.LoginResponse, error) {
 	var user dto.LoginResponse
-	isDup, err := u.CheckDuplicatePhoneNumber(request.Phone)
-	if err != nil {
-		return dto.LoginResponse{}, err
-	}
-	// Check Duplicate Phone Number
-	if isDup {
-		return dto.LoginResponse{}, errors.New("Phone number not found")
+	isDup, err := u.isDuplicatePhoneNumber(request.Phone)
+	if err != nil || isDup == false {
+		return &dto.LoginResponse{}, errors.New("Phone number or password is incorrect. Please try again")
 	}
 	// Check Legal Password
-	if !u.CheckLegalPassword(request.Password) {
-		return dto.LoginResponse{}, errors.New("Password must be at least 10 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character")
+	if !u.isLegalPassword(request.Password) {
+		return &dto.LoginResponse{}, errors.New("Password must be at least 10 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character")
 	}
 	// Saltin Password with Phone Number
 	newPassword := request.Password + request.Phone
@@ -72,41 +69,40 @@ func (u UserService) Login(request dto.LoginRequest) (dto.LoginResponse, error) 
 	newHashedPassword := hashPassword(newPassword)
 	err = db.DB.QueryRow("SELECT id,phone_number,email,full_name FROM user WHERE phone_number = ? AND password = ?", request.Phone, newHashedPassword).Scan(&user.Id, &user.PhoneNumber, &user.Email, &user.FullName)
 	if err != nil {
-		return dto.LoginResponse{}, errors.New("Phone number or password is incorrect. Please try again")
+		return &dto.LoginResponse{}, errors.New("Phone number or password is incorrect. Please try again")
 	}
-	return user, nil
+	return &user, nil
 }
 
+// --------------------------------------------------------------------------
+// Internal Code
 // Check Duplicate Phone Number
-func (u UserService) CheckDuplicatePhoneNumber(phone string) (bool, error) {
+func (u UserService) isDuplicatePhoneNumber(phone string) (bool, error) {
 	querry, err := db.DB.Query("SELECT * FROM user WHERE phone_number = ? AND deleted_at IS NULL", phone)
-	if err != nil {
+	if err != nil || !querry.Next() {
 		return false, err
-	}
-	if querry.Next() {
-		return false, nil
 	}
 	return true, nil
 }
 
 // Check Legal Password
-func (u UserService) CheckLegalPassword(password string) bool {
-	return len(password) < 10 && regexp.MustCompile(`(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}|:<>?~])`).MatchString(password)
+func (u UserService) isLegalPassword(password string) bool {
+	return len(password) >= 10 && regexp.MustCompile(`^[A-Za-z\d!@#$%^&*()_+{}|:<>?~]+$`).MatchString(password) &&
+		regexp.MustCompile(`[a-z]`).MatchString(password) &&
+		regexp.MustCompile(`[A-Z]`).MatchString(password) &&
+		regexp.MustCompile(`\d`).MatchString(password) &&
+		regexp.MustCompile(`[!@#$%^&*()_+{}|:<>?~]`).MatchString(password)
 }
 
 // Check Duplicate Email
-func (u UserService) CheckDuplicateEmail(email string) bool {
+func (u UserService) isDuplicateEmail(email string) (bool, error) {
 	querry, err := db.DB.Query("SELECT * FROM user WHERE email =? AND deleted_at IS NULL", email)
-	if err != nil {
-		return false
+	if err != nil || !querry.Next() {
+		return false, err
 	}
-	if querry.Next() {
-		return false
-	}
-	return true
+	return true, nil
 }
 
-// Internal Code
 // Hash Password
 func hashPassword(password string) string {
 	passwordHash := sha256.Sum256([]byte(password))
