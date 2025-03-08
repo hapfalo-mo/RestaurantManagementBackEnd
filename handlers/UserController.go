@@ -16,7 +16,7 @@ type UserController struct {
 // Constructor for denpendency injection
 func NewUserController(service interfaces.UserInterface) *UserController {
 	if service == nil {
-		panic("UserController NewUserController service is nil")
+		panic("NewUserController service is nil")
 	}
 	return &UserController{service: service}
 }
@@ -60,4 +60,24 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Message": "Login Success", "Data": result})
+}
+
+// Udpdate User Information
+func (u *UserController) Update(c *gin.Context) {
+	var request *dto.UserUpdateRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if u.service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Service is not initialized"})
+		return
+	}
+	result, err := u.service.Update(request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Message": result})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Message": "Update Success", "Data": result})
 }

@@ -11,6 +11,8 @@ import (
 func SetRoutesAPI(r *gin.Engine) {
 	db.Connect()
 	userService := &service.UserService{}
+	bookingService := &service.BookingService{}
+	bookingController := handlers.NewBookingController(bookingService)
 	userController := handlers.NewUserController(userService)
 	v1 := r.Group("api/v1")
 	{
@@ -18,6 +20,12 @@ func SetRoutesAPI(r *gin.Engine) {
 		{
 			users.POST("/signup", userController.Register)
 			users.POST("/login", userController.Login)
+			users.PUT("/updateUser", userController.Update)
+		}
+
+		bookings := v1.Group("/bookings")
+		{
+			bookings.POST("/bookTable", bookingController.BookingTable)
 		}
 	}
 }
