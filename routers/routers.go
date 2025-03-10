@@ -19,7 +19,7 @@ func SetRoutesAPI(r *gin.Engine) {
 		users := v1.Group("/users")
 		{
 			users.POST("/signup", userController.Register)
-			users.POST("/login", userController.Login)
+			users.POST("/login", userController.LoginToken)
 			users.PUT("/updateUser", userController.Update)
 		}
 

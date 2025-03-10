@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/golang-jwt/jwt"
 )
 
 var _ interfaces.UserInterface = &UserService{}
@@ -15,6 +17,24 @@ var _ interfaces.UserInterface = &UserService{}
 type UserService struct {
 }
 
+var sercretKey = "ChuonNG_deP_trAi"
+
+// Create Token
+func createToken(user *dto.LoginResponse) (string, error) {
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userId":   user.Id,
+		"email":    user.Email,
+		"phone":    user.PhoneNumber,
+		"fullName": user.FullName,
+		"role":     user.Role,
+		"point":    user.Point,
+	})
+	tokenString, err := claims.SignedString([]byte(sercretKey))
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
 func (u UserService) Register(request dto.SignupRequest) (message string, err error) {
 
 	// Check Duplicate Email
@@ -63,11 +83,22 @@ func (u UserService) Login(request *dto.LoginRequest) (*dto.LoginResponse, error
 	newPassword := request.Password + request.Phone
 	// Hash Password
 	newHashedPassword := hashPassword(newPassword)
-	err := db.DB.QueryRow("SELECT id,phone_number,email,full_name FROM user WHERE phone_number = ? AND password = ?", request.Phone, newHashedPassword).Scan(&user.Id, &user.PhoneNumber, &user.Email, &user.FullName)
+	err := db.DB.QueryRow("SELECT id,phone_number,email,full_name FROM user WHERE phone_number = ? AND password = ? AND deleted_at IS NULL", request.Phone, newHashedPassword).Scan(&user.Id, &user.PhoneNumber, &user.Email, &user.FullName)
 	if err != nil {
 		return &dto.LoginResponse{}, errors.New("Phone number or password is incorrect. Please try again")
 	}
 	return &user, nil
+}
+func (u UserService) TokenLogin(request *dto.LoginRequest) (string, error) {
+	user, err := u.Login(request)
+	if err != nil {
+		return "", err
+	}
+	token, err := createToken(user)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 // Update User Information

@@ -62,6 +62,26 @@ func (u *UserController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Login Success", "Data": result})
 }
 
+// Token Login
+func (u *UserController) LoginToken(c *gin.Context) {
+	var request *dto.LoginRequest
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if u.service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Service is not initialized"})
+		return
+	}
+	result, err := u.service.TokenLogin(request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Message": "Login Success", "Data": result})
+}
+
 // Udpdate User Information
 func (u *UserController) Update(c *gin.Context) {
 	var request *dto.UserUpdateRequest
