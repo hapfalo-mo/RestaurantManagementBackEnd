@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-
-	"github.com/golang-jwt/jwt"
 )
 
 var _ interfaces.UserInterface = &UserService{}
@@ -17,24 +15,6 @@ var _ interfaces.UserInterface = &UserService{}
 type UserService struct {
 }
 
-var sercretKey = "ChuonNG_deP_trAi"
-
-// Create Token
-func createToken(user *dto.LoginResponse) (string, error) {
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":   user.Id,
-		"email":    user.Email,
-		"phone":    user.PhoneNumber,
-		"fullName": user.FullName,
-		"role":     user.Role,
-		"point":    user.Point,
-	})
-	tokenString, err := claims.SignedString([]byte(sercretKey))
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
 func (u UserService) Register(request dto.SignupRequest) (message string, err error) {
 
 	// Check Duplicate Email
@@ -94,7 +74,7 @@ func (u UserService) TokenLogin(request *dto.LoginRequest) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	token, err := createToken(user)
+	token, err := CreateToken(user)
 	if err != nil {
 		return "", err
 	}

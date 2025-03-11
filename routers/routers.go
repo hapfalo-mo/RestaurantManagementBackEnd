@@ -3,6 +3,7 @@ package routers
 import (
 	db "RestuarantBackend/db"
 	handlers "RestuarantBackend/handlers"
+	middleware "RestuarantBackend/middleware"
 	service "RestuarantBackend/service"
 
 	"github.com/gin-gonic/gin"
@@ -20,12 +21,12 @@ func SetRoutesAPI(r *gin.Engine) {
 		{
 			users.POST("/signup", userController.Register)
 			users.POST("/login", userController.LoginToken)
-			users.PUT("/updateUser", userController.Update)
+			users.PUT("/updateUser", middleware.AuthenticateMiddleware, userController.Update)
 		}
 
 		bookings := v1.Group("/bookings")
 		{
-			bookings.POST("/bookTable", bookingController.BookingTable)
+			bookings.POST("/bookTable", middleware.AuthenticateMiddleware, bookingController.BookingTable)
 		}
 	}
 }
