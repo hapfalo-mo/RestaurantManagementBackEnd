@@ -1,7 +1,7 @@
 package models
 
 type BookingResponse struct {
-	id            int    `json:"id"`
+	Id            int    `json:"id"`
 	UserId        int    `json:"UserId"`
 	UserName      string `json:"UserName"`
 	UserPhone     string `json:"UserPhone"`

@@ -17,7 +17,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 	}
 
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == " " {
+	if tokenString == "" {
 		c.JSON(401, gin.H{"error": "Invalid Token format"})
 		c.Abort()
 		return

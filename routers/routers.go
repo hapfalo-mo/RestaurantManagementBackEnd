@@ -27,6 +27,7 @@ func SetRoutesAPI(r *gin.Engine) {
 		bookings := v1.Group("/bookings")
 		{
 			bookings.POST("/bookTable", middleware.AuthenticateMiddleware, bookingController.BookingTable)
+			bookings.GET("/getBooking/:id", middleware.AuthenticateMiddleware, bookingController.PagingBookingList)
 		}
 	}
 }

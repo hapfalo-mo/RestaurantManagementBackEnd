@@ -79,6 +79,8 @@ func (u *UserController) LoginToken(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
+	// Save Token into Cookie
+	c.SetCookie("token", result, 3600, "/", "localhost", false, false)
 	c.JSON(http.StatusOK, gin.H{"Message": "Login Success", "Data": result})
 }
 

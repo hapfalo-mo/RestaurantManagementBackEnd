@@ -5,6 +5,8 @@ import (
 	dto "RestuarantBackend/models/dto"
 	"net/http"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,4 +40,33 @@ func (b *BookingController) BookingTable(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Message": "Please check confirmation from email or sms for your booking"})
+}
+
+// Get Paging Booking List
+func (b *BookingController) PagingBookingList(c *gin.Context) {
+	var request *dto.PagingRequest
+	var id int
+
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	idStr := c.Param("id")
+	id, err = strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if b.service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Internal Error": "Service is not working.."})
+	}
+	result, err := b.service.PagingBookingList(request, id)
+	if err != nil {
+		c.JSON(http.StatusFound, gin.H{"error": "Can not show the list"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"Data": result})
 }

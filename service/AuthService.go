@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var sercretKey = []byte("ChuonNG_deP_trAi")
+var secretKey = []byte("a-string-secret-at-least-256-bits-long")
 
 // Create Struct Claims
 type Claims struct {
@@ -31,14 +31,14 @@ func CreateToken(user *dto.LoginResponse) (string, error) {
 		Role:     user.Role,
 		Point:    user.Point,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "RestuarantBackend",
 			Subject:   "Authentication",
 		},
 	}
-	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(sercretKey)
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secretKey)
 	if err != nil {
 		return "", err
 	}
@@ -47,7 +47,7 @@ func CreateToken(user *dto.LoginResponse) (string, error) {
 
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return sercretKey, nil
+		return secretKey, nil
 	})
 	if err != nil {
 		return nil, err
