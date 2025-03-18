@@ -3,10 +3,12 @@ package service
 import (
 	"RestuarantBackend/db"
 	"RestuarantBackend/interfaces"
+	"RestuarantBackend/models"
 	dto "RestuarantBackend/models/dto"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 )
 
@@ -69,6 +71,8 @@ func (u UserService) Login(request *dto.LoginRequest) (*dto.LoginResponse, error
 	}
 	return &user, nil
 }
+
+// Token Login
 func (u UserService) TokenLogin(request *dto.LoginRequest) (string, error) {
 	user, err := u.Login(request)
 	if err != nil {
@@ -113,6 +117,45 @@ func (u UserService) Update(request *dto.UserUpdateRequest) (message string, err
 	}
 	message = "Update Success"
 	return message, nil
+}
+
+// Get All User Paging List
+func (u UserService) PagingListAllUser(request *dto.PagingRequest) (result []models.User, err error) {
+	offset := (request.Page - 1) * request.PageSize
+	querry := "SELECT id,email,phone_number,full_name,created_at, updated_at, deleted_at,role,point FROM user LIMIT ? OFFSET ?"
+	rows, err := db.DB.Query(querry, request.PageSize, offset)
+	if err != nil {
+		return nil, (errors.New("Something wrong when call query"))
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Email, &user.PhoneNumber, &user.FullName, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt, &user.Role, &user.Point)
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, user)
+	}
+	return result, nil
+}
+
+func (u UserService) GetAllUser() (result []models.User, err error) {
+	// Prepare Querry
+	querry := "SELECT id,email,phone_number,full_name,created_at, updated_at, deleted_at,role,point FROM user"
+	rows, err := db.DB.Query(querry)
+	if err != nil {
+		return nil, (errors.New("Something wrong when you call querry"))
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Email, &user.PhoneNumber, &user.FullName, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt, &user.Role, &user.Point)
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, user)
+	}
+	return result, nil
 }
 
 // --------------------------------------------------------------------------

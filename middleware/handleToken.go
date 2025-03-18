@@ -30,5 +30,6 @@ func AuthenticateMiddleware(c *gin.Context) {
 		return
 	}
 	c.Set("userId", claims.UserID)
+	c.Set("role", claims.Role)
 	c.Next()
 }

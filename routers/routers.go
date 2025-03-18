@@ -22,6 +22,8 @@ func SetRoutesAPI(r *gin.Engine) {
 			users.POST("/signup", userController.Register)
 			users.POST("/login", userController.LoginToken)
 			users.PUT("/updateUser", middleware.AuthenticateMiddleware, userController.Update)
+			users.POST("/getAllUser", userController.GetAllUSerPagingList)
+			users.GET("/export-csvFile", userController.ExportUserCSVFile)
 		}
 
 		bookings := v1.Group("/bookings")

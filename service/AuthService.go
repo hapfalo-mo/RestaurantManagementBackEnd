@@ -12,7 +12,7 @@ var secretKey = []byte("a-string-secret-at-least-256-bits-long")
 
 // Create Struct Claims
 type Claims struct {
-	UserID   int    `json:"userID`
+	UserID   int    `json:"userID"`
 	Role     int    `json:"role"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
