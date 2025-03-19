@@ -46,7 +46,8 @@ func CreateToken(user *dto.LoginResponse) (string, error) {
 }
 
 func ParseToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 	if err != nil {

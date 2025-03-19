@@ -6,6 +6,7 @@ import (
 	"RestuarantBackend/models"
 	dto "RestuarantBackend/models/dto"
 	"crypto/sha256"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -65,9 +66,19 @@ func (u UserService) Login(request *dto.LoginRequest) (*dto.LoginResponse, error
 	newPassword := request.Password + request.Phone
 	// Hash Password
 	newHashedPassword := hashPassword(newPassword)
-	err := db.DB.QueryRow("SELECT id,phone_number,email,full_name FROM user WHERE phone_number = ? AND password = ? AND deleted_at IS NULL", request.Phone, newHashedPassword).Scan(&user.Id, &user.PhoneNumber, &user.Email, &user.FullName)
-	if err != nil {
-		return &dto.LoginResponse{}, errors.New("Phone number or password is incorrect. Please try again")
+	querry := "SELECT id,phone_number,email,full_name,role,point FROM user WHERE phone_number = ? AND password = ? AND deleted_at IS NULL"
+	err := db.DB.QueryRow(querry, request.Phone, newHashedPassword).Scan(
+		&user.Id,
+		&user.Email,
+		&user.FullName,
+		&user.PhoneNumber,
+		&user.Role,
+		&user.Point,
+	)
+	if err == sql.ErrNoRows {
+		return nil, errors.New("Phone Number or Password is in correct !")
+	} else if err != nil {
+		return &dto.LoginResponse{}, errors.New("Database is error. Please try again")
 	}
 	return &user, nil
 }
@@ -139,6 +150,7 @@ func (u UserService) PagingListAllUser(request *dto.PagingRequest) (result []mod
 	return result, nil
 }
 
+// Get All User For Admin
 func (u UserService) GetAllUser() (result []models.User, err error) {
 	// Prepare Querry
 	querry := "SELECT id,email,phone_number,full_name,created_at, updated_at, deleted_at,role,point FROM user"
@@ -156,6 +168,35 @@ func (u UserService) GetAllUser() (result []models.User, err error) {
 		result = append(result, user)
 	}
 	return result, nil
+}
+
+// Block User or UnBlock User
+func (u UserService) BlockOrUnBlockUser(userId *int) (result string, err error) {
+	var user models.User
+	// Get User
+	Preparequerry1 := "SELECT deleted_at FROM user WHERE id = ?"
+
+	err = db.DB.QueryRow(Preparequerry1, *userId).Scan(&user.DeletedAt)
+	if err != nil {
+		return "", errors.New("Something wrong to get User")
+	}
+	if !user.DeletedAt.Valid {
+		Preparequerry2 := "UPDATE `user` SET deleted_at = NOW() WHERE id = ?"
+		_, err := db.DB.Exec(Preparequerry2, *userId)
+		if err != nil {
+			return "", errors.New("Failed to block user!")
+		}
+		result = "Success Block User"
+		return result, nil
+	} else {
+		Preparequerry3 := "UPDATE `user` SET deleted_at = NULL WHERE id = ?"
+		_, err := db.DB.Exec(Preparequerry3, *userId)
+		if err != nil {
+			return "", errors.New("Faile to Unblock User")
+		}
+		result = "Success UnBlock User"
+		return result, nil
+	}
 }
 
 // --------------------------------------------------------------------------

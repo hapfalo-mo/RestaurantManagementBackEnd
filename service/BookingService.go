@@ -60,3 +60,25 @@ func (b BookingService) PagingBookingList(request *dto.PagingRequest, userid int
 	}
 	return result, nil
 }
+func (b BookingService) PagingAllBookingList(request *dto.PagingRequest) (result []dto.BookingResponse, err error) {
+	querry := `SELECT b.id,b.user_id, b.guest_count, b.time, b.created_at, b.status, b.note, b.customer_name, b.customer_phone, u.full_name, u.phone_number
+			FROM booking b
+			JOIN user u
+			ON b.user_id = u.id
+			ORDER BY b.created_at DESC 
+			LIMIT ? OFFSET ?`
+	rows, err := db.DB.Query(querry, request.PageSize, (request.Page-1)*request.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var booking dto.BookingResponse
+		err = rows.Scan(&booking.Id, &booking.UserId, &booking.GuestCount, &booking.BookingDate, &booking.CreatedAt, &booking.Status, &booking.Description, &booking.CustomerName, &booking.CustomerPhone, &booking.UserName, &booking.UserPhone)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, booking)
+	}
+	return result, nil
+}

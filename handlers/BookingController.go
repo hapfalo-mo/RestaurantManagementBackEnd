@@ -42,7 +42,7 @@ func (b *BookingController) BookingTable(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Please check confirmation from email or sms for your booking"})
 }
 
-// Get Paging Booking List
+// Get Paging Booking List Of Detail User
 func (b *BookingController) PagingBookingList(c *gin.Context) {
 	var request *dto.PagingRequest
 	var id int
@@ -68,5 +68,23 @@ func (b *BookingController) PagingBookingList(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"Data": result})
+}
+
+// Get Booking List with out Detail User
+func (b *BookingController) PagingAllBookingList(c *gin.Context) {
+	var request *dto.PagingRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err})
+		return
+	}
+	if b.service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+	}
+	result, err := b.service.PagingAllBookingList(request)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"Error": err})
+	}
 	c.JSON(http.StatusOK, gin.H{"Data": result})
 }

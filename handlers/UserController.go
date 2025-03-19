@@ -150,3 +150,19 @@ func (u *UserController) ExportUserCSVFile(c *gin.Context) {
 		writer.Write([]string{strconv.Itoa(user.Id), user.PhoneNumber, user.Email, user.FullName, user.CreatedAt, user.UpdatedAt, user.DeletedAt.String, strconv.Itoa(user.Role), strconv.Itoa(user.Point)})
 	}
 }
+
+// Block or UnBlock User
+func (u *UserController) BlockOrUnblockUser(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err})
+	}
+	if u.service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "Internal Service does not active !"})
+	}
+	result, err := u.service.BlockOrUnBlockUser(&userId)
+	if err != nil {
+		c.JSON(http.StatusNotAcceptable, err)
+	}
+	c.JSON(http.StatusOK, gin.H{"Message": result})
+}

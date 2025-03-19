@@ -12,4 +12,5 @@ type UserInterface interface {
 	TokenLogin(loginRequest *dto.LoginRequest) (string, error)
 	PagingListAllUser(pagingRequest *dto.PagingRequest) ([]models.User, error)
 	GetAllUser() ([]models.User, error)
+	BlockOrUnBlockUser(userId *int) (string, error)
 }

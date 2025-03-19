@@ -22,14 +22,16 @@ func SetRoutesAPI(r *gin.Engine) {
 			users.POST("/signup", userController.Register)
 			users.POST("/login", userController.LoginToken)
 			users.PUT("/updateUser", middleware.AuthenticateMiddleware, userController.Update)
-			users.POST("/getAllUser", userController.GetAllUSerPagingList)
-			users.GET("/export-csvFile", userController.ExportUserCSVFile)
+			users.POST("/getAllUser", middleware.AuthenAdminMiddelWare, userController.GetAllUSerPagingList)
+			users.GET("/export-csvFile", middleware.AuthenAdminMiddelWare, userController.ExportUserCSVFile)
+			users.PUT("/block-unblock-user/:id", middleware.AuthenAdminMiddelWare, userController.BlockOrUnblockUser)
 		}
 
 		bookings := v1.Group("/bookings")
 		{
 			bookings.POST("/bookTable", middleware.AuthenticateMiddleware, bookingController.BookingTable)
 			bookings.POST("/getBooking/:id", middleware.AuthenticateMiddleware, bookingController.PagingBookingList)
+			bookings.POST("/get-all-bookings", middleware.AuthenAdminMiddelWare, bookingController.PagingAllBookingList)
 		}
 	}
 }
